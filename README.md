@@ -77,22 +77,21 @@ The project was managed using **Agile methodology**, ensuring continuous validat
 
 ## 🔄 System Workflow & Decision Flow
 
+## 🔄 System Workflow & Decision Flow
+
 ```mermaid
 flowchart LR
-    A[System Initialization] --> B[Data Collection & Evaluation]
+    A[System Initialization] --> B[Data Collection and Evaluation]
     B --> C[Database Preparation]
-    C --> D[Algorithm Development<br/> & Validation]
+    C --> D[Algorithm Development and Validation]
 
     D -->|Successful| E[Probability Optimization]
-    D -->|Unsuccessful| F[Model Revision Loop<br/>(Feature / Model Update)]
+    D -->|Unsuccessful| F[Model Revision Loop - Feature/Model Update]
     F --> D
 
-    E --> G[Web / Interface Integration]
-    G --> H[System Testing & Optimization]
-    H --> I[Final Delivery & User Presentation]
-
-
-Each iteration concluded with **verifiable technical and academic artifacts**, enabling traceable progress and structured project closure.
+    E --> G[Web and Interface Integration]
+    G --> H[System Testing and Optimization]
+    H --> I[Final Delivery and User Presentation]
 ```
 ---
 
