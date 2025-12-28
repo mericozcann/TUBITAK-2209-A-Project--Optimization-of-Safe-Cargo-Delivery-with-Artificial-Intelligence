@@ -1,0 +1,905 @@
+<html lang="tr" class="scroll-smooth"><head><script>(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6ImUzOGIyZmQ4N2FiNjRlNWIzOGQzZjliYzA1MWQwMWRkOWE0NGEyMDAiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6XC9cL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbVwvZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNDYwNjUxODQzNjg3NTcwMTI0OCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2YwY2JhNmM1YzVhNWI5MzlfbGFzdC1taWxlLWluZm9ncmFwaGljLXNwYS02ODkifSwiZXhwIjoxNzU0NDA0MjYwLCJpYXQiOjE3NTQ0MDA2NjAsImFsZyI6IlJTMjU2In0.VDq2YJMPRFvNVzK3tWmdA8XxrKg1DfDT2-O9PozkiLhL0yoAQLExzzFY9Teu-ZXQNxgAmq0CduM_fEiBt6z0Vib1LjiewnP6XSED550q3bwTXqgV3sYXgvix__yncGPtNf4wtmBT_cGZ7b0oIhW8_t_Fy5NwLnf9ICVGWWRlLqOEFaxfzVUv9_pIQANcdhq_S25e_y89YTs8_hVr5kGDEAjGogtWJE1lnZ_k5X_Yj9HrrA3WuY1ykIE8PnKKpFZ-x9tFlxy6TQzlirgykBdfIFMagIsY6RXk6IZmOF27xM_2JttM8vwn4MG6AuC_abKzSp-v58XZPZ7ZT3-Ga7Kmmg","c_f0cba6c5c5a5b939_last-mile-infographic-spa-689")</script><script>(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script>
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script>((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-2.5-flash-preview-05-20","imageModelName":"imagen-3.0-generate-002","imageEditModelName":"gemini-2.0-flash-preview-image-generation","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash-preview-04-17"]})</script><script>(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Son Kilometre Lojistiği Optimizasyonu: Bir İnfografik İnceleme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            color: #212529;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .kpi-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #6C757D;
+        }
+        .section-title {
+            font-weight: 900;
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+            color: #0d285c;
+        }
+        .section-subtitle {
+            font-weight: 600;
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+            color: #3357FF;
+        }
+        .card-title {
+            font-weight: 700;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            color: #0d285c;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.mx-auto{margin-left:auto;margin-right:auto}.my-12{margin-top:3rem;margin-bottom:3rem}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-16{margin-top:4rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.flex{display:flex}.grid{display:grid}.h-64{height:16rem}.h-80{height:20rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-16 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(4rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(4rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.scroll-smooth{scroll-behavior:smooth}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-t{border-top-width:1px}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1))}.border-green-200{--tw-border-opacity:1;border-color:rgb(187 247 208 / var(--tw-border-opacity, 1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202 / var(--tw-border-opacity, 1))}.border-yellow-300{--tw-border-opacity:1;border-color:rgb(253 224 71 / var(--tw-border-opacity, 1))}.bg-\[\#3357FF\]{--tw-bg-opacity:1;background-color:rgb(51 87 255 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-green-50{--tw-bg-opacity:1;background-color:rgb(240 253 244 / var(--tw-bg-opacity, 1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.bg-yellow-50{--tw-bg-opacity:1;background-color:rgb(254 252 232 / var(--tw-bg-opacity, 1))}.p-3{padding:0.75rem}.p-4{padding:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-8{padding-top:2rem;padding-bottom:2rem}.text-center{text-align:center}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-6xl{font-size:3.75rem;line-height:1}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.leading-tight{line-height:1.25}.text-\[\#0d285c\]{--tw-text-opacity:1;color:rgb(13 40 92 / var(--tw-text-opacity, 1))}.text-\[\#3357FF\]{--tw-text-opacity:1;color:rgb(51 87 255 / var(--tw-text-opacity, 1))}.text-\[\#33FF57\]{--tw-text-opacity:1;color:rgb(51 255 87 / var(--tw-text-opacity, 1))}.text-\[\#FF5733\]{--tw-text-opacity:1;color:rgb(255 87 51 / var(--tw-text-opacity, 1))}.text-\[\#FFC300\]{--tw-text-opacity:1;color:rgb(255 195 0 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 768px){.md\:mt-24{margin-top:6rem}.md\:h-80{height:20rem}.md\:w-1\/3{width:33.333333%}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:gap-8{gap:2rem}.md\:space-y-24 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(6rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(6rem * var(--tw-space-y-reverse))}.md\:p-8{padding:2rem}.md\:text-6xl{font-size:3.75rem;line-height:1}.md\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style></head>
+<body class="antialiased">
+    <!-- 
+        Infographic Narrative Plan:
+        1.  Hook: The Last-Mile Problem - Introduce the challenge with a key stat and trend chart.
+        2.  Core Concepts: Two Paths to Optimization - Visually separate VRO and ML.
+        3.  Deep Dive 1: Vehicle Routing Optimization (VRO) - Explain VRP variants and popular algorithms.
+        4.  Deep Dive 2: Machine Learning (ML) - Showcase key application areas and algorithms.
+        5.  Synthesis: Hybrid Approaches - Show the convergence of both fields.
+        6.  Outlook: The Road Ahead - Highlight future research directions.
+
+        Visualization Choices:
+        -   Publication Trend -> Line Chart (Chart.js) -> Goal: Show Change
+        -   VRO vs ML Flow -> HTML/CSS Diagram -> Goal: Organize
+        -   VRP Variants -> HTML/CSS Flowchart -> Goal: Organize
+        -   VRO Algorithms -> Bar Chart (Chart.js) -> Goal: Compare
+        -   ML Applications -> Donut Chart (Chart.js) -> Goal: Compare Composition
+        -   Future Directions -> Styled Cards with Icons (HTML/CSS) -> Goal: Organize
+
+        Color Palette Used: "Brilliant Blues" inspired.
+        Primary: #3357FF, Secondary: #FFC300, Accent: #FF5733, Text: #0d285c, Background: #F8F9FA
+
+        Confirmation: NEITHER Mermaid JS NOR SVG were used in this output. All diagrams and icons are created with HTML, Tailwind CSS, and standard Unicode characters.
+    -->
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center my-12">
+            <h1 class="text-4xl md:text-6xl font-black text-[#0d285c] leading-tight">Son Kilometre Lojistiği Optimizasyonu</h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">E-ticaretin yükselişiyle karmaşıklaşan şehir içi teslimatların, geleneksel optimizasyon ve yapay zekâ ile nasıl verimli hale getirildiğine dair görsel bir inceleme.</p>
+            <button onclick="downloadInfographic()" class="mt-6 px-6 py-3 bg-[#3357FF] text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition duration-300">İnfografiği İndir</button>
+        </header>
+
+        <main class="space-y-16 md:space-y-24">
+
+            <section id="challenge" class="text-center">
+                <h2 class="section-title">1. Son Kilometre Meydan Okuması</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-600">E-ticaretin durdurulamaz büyümesi, şehir içi lojistiği bir verimlilik bulmacasına dönüştürdü. Artan teslimat hacmi, trafik sıkışıklığı ve çevresel endişeler gibi ciddi zorlukları da beraberinde getiriyor.</p>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="kpi-card text-center">
+                        <span class="text-6xl font-black text-[#3357FF]">~%25</span>
+                        <p class="mt-2 text-lg font-semibold text-[#0d285c]">Şehirlerdeki CO₂ Emisyonları</p>
+                        <p class="mt-1 text-gray-500">Kentsel bölgelerdeki toplam karbondioksit emisyonlarının yaklaşık dörtte biri yük taşımacılığından kaynaklanmaktadır. Bu durum, sürdürülebilir çözümlerin aciliyetini vurgulamaktadır.</p>
+                    </div>
+                    <div class="kpi-card">
+                         <h3 class="card-title text-center mb-4">Akademik İlginin Yükselişi</h3>
+                        <div class="chart-container h-64 md:h-80">
+                            <canvas id="publicationTrendChart" width="416" height="320" style="display: block; box-sizing: border-box; height: 320px; width: 416px;"></canvas>
+                        </div>
+                        <p class="mt-4 text-sm text-center text-gray-500">Son on yılda, son kilometre lojistiği üzerine yapılan akademik yayınların sayısındaki artış, konunun artan önemini ve karmaşıklığını göstermektedir.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="two-paths" class="text-center">
+                <h2 class="section-title">2. Optimizasyona Giden İki Yol</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-600">Bu karmaşık problemi çözmek için literatürde iki ana yaklaşım öne çıkıyor: Kökleri operasyonel araştırmaya dayanan geleneksel optimizasyon ve veri odaklı içgörüler sunan modern makine öğrenimi.</p>
+                <div class="mt-12 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+                    <div class="kpi-card w-full md:w-1/3 text-center">
+                        <span class="text-3xl">⚙️</span>
+                        <h3 class="card-title mt-2">Araç Rotalama Optimizasyonu (VRO)</h3>
+                        <p class="text-sm text-gray-500 mt-1">Matematiksel modellere dayalı, en verimli rotaları bulmayı amaçlayan klasik yaklaşım.</p>
+                    </div>
+                    <div class="flow-arrow font-bold">+</div>
+                    <div class="kpi-card w-full md:w-1/3 text-center">
+                        <span class="text-3xl">🧠</span>
+                        <h3 class="card-title mt-2">Makine Öğrenimi (ML)</h3>
+                        <p class="text-sm text-gray-500 mt-1">Geçmiş verilerden öğrenerek talep tahmini ve anomali tespiti yapan modern yaklaşım.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="vro-deep-dive">
+                <h2 class="section-title text-center">3. Geleneksel Yol: Araç Rotalama Optimizasyonu (VRO)</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-600 text-center">VRO'nun kalbinde, en kısa ve en düşük maliyetli rotayı bulma problemi olan Araç Rotalama Problemi (VRP) yatar. Ancak gerçek dünya, problemi daha karmaşık hale getiren birçok ek kısıt içerir.</p>
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="kpi-card">
+                        <h3 class="card-title mb-4">VRP'nin Evrimi: Gerçek Dünya Varyantları</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <p class="font-bold text-[#3357FF]">Dinamik VRP (DVRP)</p>
+                                <p class="text-sm text-gray-600">Operasyon sırasında ortaya çıkan yeni siparişler veya trafik değişiklikleri gibi gerçek zamanlı olaylara uyum sağlar.</p>
+                            </div>
+                            <div class="p-3 bg-yellow-50 rounded-lg border border-yellow-300">
+                                <p class="font-bold text-[#FFC300]">Stokastik VRP (SVRP)</p>
+                                <p class="text-sm text-gray-600">Talep, seyahat süresi gibi belirsiz ve değişken parametreleri olasılıksal olarak modeller.</p>
+                            </div>
+                            <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                                <p class="font-bold text-[#FF5733]">Çok Amaçlı VRP (MOVRP)</p>
+                                <p class="text-sm text-gray-600">Maliyet, zaman, emisyon gibi birden fazla çelişen hedefi aynı anda optimize etmeye çalışır.</p>
+                            </div>
+                             <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p class="font-bold text-[#33FF57]">Zengin VRP (RVRP)</p>
+                                <p class="text-sm text-gray-600">Zaman pencereleri, heterojen filolar gibi çok sayıda gerçek hayat kısıtını bir arada ele alır.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3 class="card-title mb-4">Popüler VRO Çözüm Algoritmaları</h3>
+                        <p class="text-sm text-gray-500 mb-4">Büyük ölçekli ve karmaşık VRP'leri çözmek için genellikle kesin sonuç garantisi vermeyen ancak çok iyi sonuçlar üreten meta-sezgisel algoritmalar kullanılır.</p>
+                        <div class="chart-container h-80">
+                            <canvas id="vroAlgosChart" width="416" height="320" style="display: block; box-sizing: border-box; height: 320px; width: 416px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ml-deep-dive">
+                <h2 class="section-title text-center">4. Yükselen Ufuk: Makine Öğrenimi (ML)</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-600 text-center">Makine öğrenimi, lojistik operasyonlarına veri odaklı bir zeka katmanı ekler. Geçmiş verilerden öğrenerek geleceği tahmin eder, anormallikleri tespit eder ve süreçleri otomatikleştirir.</p>
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="kpi-card">
+                        <h3 class="card-title mb-4">ML Uygulama Alanlarının Dağılımı</h3>
+                         <p class="text-sm text-gray-500 mb-4">ML, son kilometre lojistiğinde özellikle talep tahmini ve anomali tespiti gibi alanlarda yoğunlaşmaktadır.</p>
+                        <div class="chart-container h-80">
+                            <canvas id="mlAppsChart" width="416" height="320" style="display: block; box-sizing: border-box; height: 320px; width: 416px;"></canvas>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3 class="card-title mb-4">Öne Çıkan ML Algoritmaları ve Uygulamaları</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="font-semibold text-[#3357FF]">Destek Vektör Makineleri (SVM) &amp; Rastgele Orman (RF)</p>
+                                <p class="text-sm text-gray-600">Gelecekteki teslimat taleplerini yüksek doğrulukla tahmin etmek için kullanılır.</p>
+                            </div>
+                            <hr>
+                            <div>
+                                <p class="font-semibold text-[#FFC300]">Derin Öğrenme (Deep Learning)</p>
+                                <p class="text-sm text-gray-600">Konteyner etiketleme gibi süreçleri otomatikleştirmek veya araç güzergahlarındaki anormallikleri tespit etmek için kullanılır.</p>
+                            </div>
+                            <hr>
+                            <div>
+                                <p class="font-semibold text-[#FF5733]">Doğal Dil İşleme (NLP)</p>
+                                <p class="text-sm text-gray-600">Sosyal medya verilerini analiz ederek müşteri memnuniyetini ve şehir lojistiği hakkındaki genel kanıyı ölçer.</p>
+                            </div>
+                             <hr>
+                            <div>
+                                <p class="font-semibold text-[#33FF57]">Uzun-Kısa Süreli Hafıza (LSTM)</p>
+                                <p class="text-sm text-gray-600">Blockchain ile entegre edilerek teslimat performansı ve müşteri memnuniyeti gibi metrikleri değerlendirir.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="hybrid-future">
+                <h2 class="section-title text-center">5. Geleceğin Yolu: Hibrit Yaklaşımlar ve Ötesi</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-600 text-center">En güçlü çözümler genellikle iki dünyanın en iyilerini birleştirmekten doğar. VRO'nun matematiksel gücü ile ML'nin öngörüsel zekasını birleştiren hibrit modeller, lojistiğin geleceğini şekillendiriyor.</p>
+                
+                <div class="mt-12">
+                    <h3 class="section-subtitle text-center">Gelecek Araştırmalar İçin Yol Haritası</h3>
+                    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="kpi-card text-center">
+                            <span class="text-4xl">💡</span>
+                            <h4 class="card-title mt-2">Denetimsiz Öğrenme</h4>
+                            <p class="mt-1 text-sm text-gray-500">Etiketlenmemiş verilerden gizli talep kalıplarını ve verimsizlikleri keşfetmek.</p>
+                        </div>
+                        <div class="kpi-card text-center">
+                            <span class="text-4xl">🤝</span>
+                            <h4 class="card-title mt-2">İş Birliği Modelleri</h4>
+                            <p class="mt-1 text-sm text-gray-500">Farklı lojistik firmalarının kaynaklarını ortaklaşa kullanarak şehir içi trafiği azaltmak.</p>
+                        </div>
+                        <div class="kpi-card text-center">
+                            <span class="text-4xl">📈</span>
+                            <h4 class="card-title mt-2">Gerçek Dünya Verileri</h4>
+                            <p class="mt-1 text-sm text-gray-500">IoT sensörlerinden gelen gerçek zamanlı verilerle daha dinamik ve isabetli modeller oluşturmak.</p>
+                        </div>
+                        <div class="kpi-card text-center">
+                             <span class="text-4xl">🚲</span>
+                            <h4 class="card-title mt-2">Sürdürülebilir Ağlar</h4>
+                            <p class="mt-1 text-sm text-gray-500">Dronlar, e-kargo bisikletleri ve otonom araçları içeren çok modlu ve yeşil lojistik ağları tasarlamak.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-16 md:mt-24 py-8 border-t">
+            <p class="text-gray-600">Bu infografik, Giuffrida ve arkadaşlarının "Optimization and Machine Learning Applied to Last-Mile Logistics: A Review" (2022) adlı akademik makalesindeki bulgulara dayanmaktadır.</p>
+            <p class="text-sm text-gray-400 mt-2">Tasarım ve Geliştirme: Meriç Özcan</p>
+        </footer>
+
+    </div>
+
+    <script>
+        function downloadInfographic() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'infografik.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const processLabels = (labels, maxLength = 16) => {
+                return labels.map(label => {
+                    if (label.length <= maxLength) {
+                        return label;
+                    }
+                    const words = label.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    words.forEach(word => {
+                        if ((currentLine + ' ' + word).trim().length > maxLength) {
+                            lines.push(currentLine.trim());
+                            currentLine = word;
+                        } else {
+                            currentLine = (currentLine + ' ' + word).trim();
+                        }
+                    });
+                    if (currentLine) {
+                        lines.push(currentLine.trim());
+                    }
+                    return lines;
+                });
+            };
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                }
+                return label;
+            };
+            
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                family: 'Inter',
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        },
+                        bodyFont: {
+                            family: 'Inter',
+                        },
+                        titleFont: {
+                            family: 'Inter',
+                        }
+                    }
+                }
+            };
+
+            const createPublicationTrendChart = () => {
+                const ctx = document.getElementById('publicationTrendChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2008', '2010', '2012', '2014', '2016', '2018', '2020'],
+                        datasets: [{
+                            label: 'Yayın Sayısı',
+                            data: [2, 3, 1, 4, 10, 9, 12],
+                            borderColor: '#3357FF',
+                            backgroundColor: 'rgba(51, 87, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { ...commonChartOptions }
+                });
+            };
+            
+            const createVroAlgosChart = () => {
+                const ctx = document.getElementById('vroAlgosChart').getContext('2d');
+                const labels = processLabels([
+                    'Büyük Komşuluk Araması (LNS)', 
+                    'Karınca Kolonisi Optimizasyonu (ACO)', 
+                    'Hibrit Meta-sezgiseller', 
+                    'Benzetimli Tavlama (SA)',
+                    'Parçacık Sürü Optimizasyonu (PSO)',
+                    'Genetik Algoritma (GA)'
+                ]);
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Literatürdeki Popülerlik (Tahmini)',
+                            data: [85, 75, 90, 60, 55, 70],
+                            backgroundColor: [
+                                'rgba(51, 87, 255, 0.7)',
+                                'rgba(255, 195, 0, 0.7)',
+                                'rgba(255, 87, 51, 0.7)',
+                                'rgba(51, 255, 87, 0.7)',
+                                'rgba(110, 87, 255, 0.7)',
+                                'rgba(255, 87, 150, 0.7)',
+                            ],
+                            borderColor: [
+                                'rgb(51, 87, 255)',
+                                'rgb(255, 195, 0)',
+                                'rgb(255, 87, 51)',
+                                'rgb(51, 255, 87)',
+                                'rgb(110, 87, 255)',
+                                'rgb(255, 87, 150)',
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        indexAxis: 'y',
+                         plugins: {
+                            ...commonChartOptions.plugins,
+                            legend: { display: false }
+                        }
+                    }
+                });
+            };
+
+            const createMlAppsChart = () => {
+                const ctx = document.getElementById('mlAppsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Talep Tahmini', 'Anomali Tespiti', 'Planlama & Otomasyon', 'Diğer (Müşteri Analizi vb.)'],
+                        datasets: [{
+                            label: 'Uygulama Alanı',
+                            data: [40, 30, 20, 10],
+                            backgroundColor: [
+                                'rgba(51, 87, 255, 0.8)',
+                                'rgba(255, 195, 0, 0.8)',
+                                'rgba(255, 87, 51, 0.8)',
+                                'rgba(108, 117, 125, 0.8)'
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: { ...commonChartOptions }
+                });
+            };
+
+            createPublicationTrendChart();
+            createVroAlgosChart();
+            createMlAppsChart();
+        });
+    </script>
+
+
+</body></html>
