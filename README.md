@@ -109,7 +109,7 @@ flowchart TD
 |---|---|
 | **2209-A General Work Plan 15.08.25.pdf** | TÜBİTAK-style general project plan |
 | **August and September 2025 Work Plan.pdf** | Agile sprint planning and timeline |
-| **Return_Risk_Analysis.ipynb** | Core machine learning pipeline |
+| **Return_Risk_Analysis.ipynb** | Demo machine learning pipeline |
 | **Risk Analysis in Maritime Transportation_Literature Review.pdf** | Academic literature foundation |
 | **Analysis of Maritime Accidents Using Bayesian Networks.html** | Probabilistic risk modeling reference |
 | **Last Mile Logistics Optimization.html** | Logistics optimization framework |
