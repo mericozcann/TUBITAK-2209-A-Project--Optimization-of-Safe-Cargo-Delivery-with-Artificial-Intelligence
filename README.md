@@ -10,6 +10,20 @@
 
 ---
 
+# AI-Driven Secure Cargo & Logistics Risk Analysis Platform
+
+**Project Advisor (Proje Danışmanı):**  
+Araş. Gör. Dr. Gözde KUŞ  
+
+**Project Lead / Principal Investigator (Proje Yürütücüsü):**  
+Meriç Özcan  
+
+**Project Team Members (Proje Ekip Üyeleri):**  
+- Buket Gürlek — Front-end Development (UI / UX, Web Interface)  
+- Mirgavam Gavami — Model Backend Development (In Progress)  
+
+---
+
 ## Abstract
 
 This repository presents a **TÜBİTAK 2209-A–level, end-to-end artificial intelligence–based decision support system** developed to **predict, optimize, and manage operational risks** in secure cargo delivery, last-mile logistics, and product return processes.
@@ -105,17 +119,21 @@ flowchart TD
 
 ## 4. Repository Structure
 
-| File | Description |
-|---|---|
-| **2209-A General Work Plan 15.08.25.pdf** | TÜBİTAK-style general project plan |
-| **August and September 2025 Work Plan.pdf** | Agile sprint planning and timeline |
-| **Return_Risk_Analysis.ipynb** | Demo machine learning pipeline |
-| **Risk Analysis in Maritime Transportation_Literature Review.pdf** | Academic literature foundation |
-| **Analysis of Maritime Accidents Using Bayesian Networks.html** | Probabilistic risk modeling reference |
-| **Last Mile Logistics Optimization.html** | Logistics optimization framework |
-| **An Overview of Management in Maritime Transportation.html** | Managerial and operational context |
-| **Colloquium Presentation.pdf** | Academic presentation material |
-| **Colloquium Written Statement.pdf** | Formal written academic contribution |
+| File | Description | Author |
+|---|---|---|
+| **2209-A General Work Plan 15.08.25.pdf** | TÜBİTAK-style general project plan | Meriç Özcan |
+| **August and September 2025 Work Plan.pdf** | Agile sprint planning and timeline | Meriç Özcan |
+| **Return_Risk_Analysis.ipynb** | Demo machine learning pipeline | Meriç Özcan |
+| **Risk Analysis in Maritime Transportation_Literature Review.pdf** | Academic literature foundation | Meriç Özcan |
+| **Analysis of Maritime Accidents Using Bayesian Networks.html** | Probabilistic risk modeling reference | Meriç Özcan |
+| **Last Mile Logistics Optimization.html** | Logistics optimization framework | Meriç Özcan |
+| **An Overview of Management in Maritime Transportation.html** | Managerial and operational context | Meriç Özcan |
+| **Colloquium Presentation.pdf** | Academic presentation material | Meriç Özcan |
+| **Colloquium Written Statement.pdf** | Formal written academic contribution | Meriç Özcan |
+| **index.html** | Web interface entry point (project landing page) | Buket Gürlek |
+| **script.js** | Front-end logic and interactivity | Buket Gürlek |
+| **style.css** | Front-end styling and layout | Buket Gürlek |
+| **Backend (in progress)** | Model backend development and integration | Mirgavam Gavami |
 
 ---
 
