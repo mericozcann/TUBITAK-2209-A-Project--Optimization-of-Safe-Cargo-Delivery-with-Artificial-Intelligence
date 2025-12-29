@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lojistik Risk Analiz Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="main-header">
+            <h1>Lojistik Risk Analiz Sistemi</h1>
+            <p>Yapay zeka destekli iade tahminleme modülü</p>
+        </header>
+
+        <main class="dashboard-grid">
+            <section class="card glass-card input-section">
+                <div class="card-header">
+                    <h2>Veri Girişi</h2>
+                </div>
+                <form id="riskForm">
+                    <div class="input-group">
+                        <label>İadeye Kalan Gün (Days to Return)</label>
+                        <input type="number" id="inputDays" placeholder="Örn: 15">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Ürün Fiyatı</label>
+                            <input type="number" id="inputPrice" placeholder="₺ 0.00">
+                        </div>
+                        <div class="input-group">
+                            <label>İndirim (%)</label>
+                            <input type="number" id="inputDiscount" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Öngörülen Risk Kategorisi</label>
+                        <select id="inputCategory">
+                            <option value="0">Düşük Riskli Ürün</option>
+                            <option value="1" selected>Orta Riskli Ürün</option>
+                            <option value="2">Yüksek Riskli Ürün</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="runAnalysis()">Risk Analizini Çalıştır</button>
+                </form>
+            </section>
+
+            <section class="card result-section">
+                <div class="card-header">
+                    <h2>Tahmin Raporu</h2>
+                </div>
+                
+                <div class="result-content">
+                    <div class="risk-indicator">
+                        <svg class="progress-ring" width="160" height="160">
+                            <circle class="progress-ring__circle-bg" cx="80" cy="80" r="70"></circle>
+                            <circle id="riskCircle" class="progress-ring__circle" cx="80" cy="80" r="70"></circle>
+                        </svg>
+                        <div class="risk-text">
+                            <span id="riskScore">--</span>
+                            <small id="riskClass">Analiz Bekleniyor</small>
+                        </div>
+                    </div>
+                    <div id="resultMessage" class="status-badge">Veri bekleniyor...</div>
+                </div>
+
+                <div class="factor-analysis">
+                    <h3>Karara Etki Eden Faktörler</h3>
+                    <div id="impactBars">
+                        </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
